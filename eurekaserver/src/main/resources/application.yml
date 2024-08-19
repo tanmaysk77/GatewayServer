@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: "eurekaserver"                                         # this name is used by configuration server to get the config fle from git
+  config:                                                       # Need config server to include properties from configuration server
+    import: "optional:configserver:http://localhost:8071/"      # http://localhost:8071/eureka/default  --> on basis of active profile and application name get the configuration file from GIT
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+
+#    Eureka server will run on 8070 fetching the server port from configuration properties file
+#eurekaserver.yml
+#server:
+#  port: 8070

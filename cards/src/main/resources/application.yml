@@ -1,0 +1,70 @@
+server:
+  port: 9000
+spring:
+  application:
+    name:  "cards"      # name should be same as config file names in config server this will tell config server give me configs based on name and currentl active profile
+  profiles:
+    active:
+      - "prod"
+  config:
+    import:
+      - "optional:configserver:http://localhost:8071/"       #Provide url of configServer to access the centralized configuration in config server and optional mean if we are not able to connect with config server still fine
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# This is used to expose the actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - "*"
+  health: # used to maintain a health check
+    readiness-state: # Checks if the Application is Live: It is exposed and checked by probes
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    shutdown:
+      enabled: true
+    health:                                 #   Includes liveness and readiness checks in the overall health status reported by the /actuator/health endpoint.
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+
+eureka:                                     # Register the client MS during startup
+  instance:
+    preferIpAddress: true                   # Ip address for other microservices to locate the service
+  client:
+    fetchRegistry: true                    # this client service will fetch the registery data
+    registerWithEureka: true              # This client service need to register with eurka
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/         # Service url of eureka server use to register
+
+
+# Info is used for service registered in the eureka server
+info:
+  app:
+    name: "cards"
+    description: "Eazy Bank Cards Application"
+    version: "1.0.0"
+
+logging:                                                            # Too enable logging in cards microservice controller
+  level:
+    com:
+      eazybytes:
+        cards: DEBUG

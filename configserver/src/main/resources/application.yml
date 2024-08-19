@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: "configserver"      # Giving a name to config server
+  profiles:
+    #active: native                  # This tells spring boot to activate cloud navite and it is required in case we are using fileSystem or server configs for storing the configurations
+    active:
+      - git                             # tells config server to refer git as repositorry fpor configration files
+  cloud:
+    config:
+      server:
+        git:
+          uri: "https://github.com/tanmaysk77/cloud-configs.git"                            # repo location code-->https--->copy the path
+          default-label: main                                                                                   # branch in the Git repo
+          timeout: 5                                                                                                # timeout if git is unresponsive after 5 secs
+          force-pull: true                                                                                        # In case you made some changes to local repo on every restart or start of server pull the new changes automatically
+          clone-on-start: true                # clone the Git at the start of cloud server itself
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"                                                                                                      # used for exposing all actuator endpoints
+  health:                                                                                                                   # used to maintain a health check
+    readiness-state:                                                                                                      # exposing readiness and liveliness for reference to another services
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:                                                                                                             # to be able to view health check probes like readiness and liveliness
+    health:
+      probes:
+        enabled: true
+
+
+            #native:
+          #search-locations: "file:///C://Users//tanmay//Desktop//UdemyProject//FileSystem_configurations"                      for filesystem
+          #search-locations: "classpath:/config"                                  # with native profile, we are letting Config Server to read the properties from the class path location provided by us from inside config server.
+                                                                                                      # Once the properties are read by the Config Server, it is going to expose all the properties using REST APIs like localhost:8071/accounts/prod
+                                                                                                      # This ur will load prod properties with the default properties if you try to get prod properties
+encrypt:
+  key: 8V4cA9qL2r5XfD1zWmUoN6sYtKp3GvJb                                                   # This key is used by the config server to decrypt encrypted data stored in git,file system or config server config folder
+                                                                                                                            # We can encrypt data using configServer encrypt api and config server will atomatically derypt it while sending to client
+server:
+  port: 8071
+
+
+
+

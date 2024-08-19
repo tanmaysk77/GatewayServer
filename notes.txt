@@ -1,0 +1,105 @@
+Uptil now we were working on microservices communicating with each other in a microservcie environment using eureka where we were not verifying request rhough postman 
+Now how we will handle when external clients will communicate with our services so how can we keep a single entry point function in our microservice environment
+How can we maintain logging,auditing,tracing and security accross multiple microservices
+How to enable dynamic routing based on headers, req parameters etc eg calling v1 or v2 apis etc
+
+
+																121
+													
+
+															Soltion 
+													API Gateway/ EDGE SERVER	
+
+Why a seperate server is needed for handling these scenarios ?
+- All MS need to have their own security logging
+- Or else we have create a sepereate package and all ms will have to use it but it is creating a tight coupling as any change in logic we have to make sure all Microservices have to be prepared for it
+
+
+Edge server / API :
+So if some cleint makes a request to our environment we can make use of api gateway to perfrom tasks like :
+1. Logging request data
+2. Secuirty concern
+3. Implementing request routing
+4. authorization and authentication
+5. Request Validation
+6. Rate Limiter (To allow how many request at a time)
+7. Service Discovery
+8. Caching of data
+
+
+Why cant we do it using eureka :
+Euereka is specific to service Discovery and Service Registrataion services
+														
+														
+														Refer II Diagram
+														
+														
+														
+															122
+															
+														
+Spring Cloud Gateway we are gpoing to use for creating a gateway (We used  GSC in verifone for it)		
+
+
+
+															123
+														
+- So we create a projected a project for gateway server we used dependencies like reactive gateway(Acting as gateway server), 
+- eureka discovery client(To make use of service discovery), config clinet(To take properties from config server), Actuator(To exposre some actuator related apis)
+- Created a yml file where we mentioned we will be using service discovery to locate the microservices we have enabled it as true 
+- And we alos added a configuration file in GIT where we have added configurations to register gatweway in eureka 
+- Property To fetch all registery details of microservices   
+
+
+															124
+														
+- We will start config server ---> eureka ---> then all working microservices ---> then the gateway server 
+- Now we have to call the gateway apis instead of direct microservice api's 
+- http://localhost:8072/accounts/api/fetch?mobileNumber=9881222339			--------> 8072 is the port of our gateway server / accounts is the service to call and api/fetch?mobileNumber=9881222339 is the uri
+- So our services accounts, loans and cards are registered onto eureka
+- So our gateway will take help of eureka acting as a service discovery to get the list of registered microserces instance and select the microservice on client side
+- Gateway server will be responsible to do the load balancing in this case now and make a reques to the appropriate instance
+- To send the request to Gateway server they have to follow this pattern appending the actual service url to it
+- So we have introduced a common gateway to call the microservice
+
+-  http://localhost:8072/accounts/api
+-  http://localhost:8072/cards/api
+-  http://localhost:8072/loans/api
+
+
+														
+
+														126
+													
+- Spring cloud also gives you the provision to define a custom url pattern
+	eg. http://localhost:8072/eazybank/accounts/api					-------------> Adding eazybank in the url 	
+
+- We have to add a methood wih configuraitons in Gateway Server Applicaiton file for it i.e file with @springbootApplication class
+
+- After adding try running these api's
+localhost:8072/eazybank/cards/api/create?mobileNumber=4354437687
+
+
+														128-129
+													
+We can have multiple filters insdie a gateway server so we will be going to create the request and response filter
+to send the Correlation Id / Trace Id in the request from gateway server to all other called microservices inside the header
+Same whie the response goes outside the gateway server we are going to send the same trace id to the external cline as a part of header													
+So for this we have writtern filters in Gateway Server Fiters for request and response also
+And in Accounts (Customer Details controller) , Loans and Cards we are fetching this correlation id and we are adding it to the logger that will show us in the cconsole of each microservce
+This we can check by creating account , card, and loans 
+Then calling fetch CustomerDetails API so in response header yopu can see the Coorelation ID basically
+To display loggers in console of each service a property in yml is also added
+
+
+
+														130
+													
+Flow ---> So user will make a request to the gateway server insteade of individual microserver ----> this will utilize the configuration server to get the configuration ---> Laterusing the service discovery it will locate the microservice apis that are registered ---> select one using loadbalanching and will make a request													
+
+
+
+
+
+
+   												
